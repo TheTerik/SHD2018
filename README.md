@@ -9,3 +9,4 @@ Python packages
 * opencv-python
 * pandas
 * numpy
+* scikit-image
