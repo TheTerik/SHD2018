@@ -12,14 +12,14 @@ def test():
 def find_circles(image):
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    param1 = 35
-    param2 = 90
+    param1 = 1
+    param2 = 100
     circles = None
-    for i in range(0, 100, 1):
-        par1 = param1+(i / 2 + i % 2)
-        par2 = param2-(i / 2 + ((i + 1) % 2))
-        circles = cv2.HoughCircles(gray_image,cv2.HOUGH_GRADIENT,1,20,
-                                param1=par1,param2=par2,minRadius=20,maxRadius=50)
+    for i in range(10000):
+        par1 = param1 + (i / 100)
+        par2 = param2 - (i % 100)
+        circles = cv2.HoughCircles(gray_image,cv2.HOUGH_GRADIENT,1,200,
+                                param1=par1,param2=par2,minRadius=25,maxRadius=40)
         # print(circles.shape if circles is not None else "None")
         if (circles is not None) and circles.shape[1] == 4:
             print(circles.shape)
@@ -28,20 +28,22 @@ def find_circles(image):
         print("Failed")
     
     circles = np.uint16(np.around(circles))
-    return circles          
+    return circles     
 
 
 def color_dist(col_temp, col_match):
-    return np.sum(np.abs(col_temp - col_match))       
+    return np.sum(np.abs(col_temp - col_match)) 
 
 
-def find_perm(array_match):
+def get_template():
     yellow = [255,255,0]
     blue = [65,105,225]
     green = [50,205,50]
-    red = [255,0,0]
-    array_template = np.array([[yellow, blue, red, green]])
+    red = [255,0,0]    
+    return np.array([[yellow, blue, red, green]])
 
+
+def find_perm(array_template, array_match):
     perm_list = list(itertools.permutations([0,1,2,3]))
     distances_list = []
     for perm in perm_list:
@@ -54,19 +56,22 @@ def find_perm(array_match):
     return perm
 
 
+def get_pos(coord):
+    return (coord[0], coord[1])
+
+
+def create_map(circles, perm):
+    coords = [get_pos(circles[0,:][perm[i]]) for i in range(4)]
+    return np.array(coords)
+
+
 def crop_image(image, circles):
-    array2 = [[list(reversed(image[i[1], i[0]])) for i in circles[0,:]]]
-    array_match = np.array(array2)
-    perm = find_perm(array_match)
+    cendroid_colors = [[list(reversed(image[i[1], i[0]])) for i in circles[0,:]]]
+    array_match = np.array(cendroid_colors)
+    
+    perm = find_perm(get_template(), array_match)
 
-    def get_pos(coord):
-        return (coord[0], coord[1])
-
-    def create_map(circles):
-        coords = [get_pos(circles[0,:][perm[i]]) for i in range(4)]
-        return np.array(coords)
-
-    coords = create_map(circles)
+    coords = create_map(circles, perm)
 
     positions = np.array([(0, 0), (1000, 0), (1000, 600), (0, 600)])
     h, status = cv2.findHomography(coords, positions)
@@ -93,8 +98,8 @@ def find_PH(scale, measurement):
     np_measurement = np.array(measurement)
     measurement_1 = np.array(np_measurement[0][0])
     measurement_2 = np.array(np_measurement[1][0])
-    scale_1_dist = np.abs(scale_1 - measurement_1)
-    scale_2_dist = np.abs(scale_2 - measurement_2)
+    scale_1_dist = np.abs(scale_1.astype(int) - measurement_1.astype(int))
+    scale_2_dist = np.abs(scale_2.astype(int) - measurement_2.astype(int))
     s1_dist_sum = [np.sum(x) for x in scale_1_dist[0]]
     s2_dist_sum = [np.sum(x) for x in scale_2_dist[0]]
     df = pd.DataFrame()
