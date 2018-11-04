@@ -22,7 +22,6 @@ def find_circles(image):
                                 param1=par1,param2=par2,minRadius=25,maxRadius=40)
         # print(circles.shape if circles is not None else "None")
         if (circles is not None) and circles.shape[1] == 4:
-            print(circles.shape)
             break
     if not ((circles is not None) and circles.shape[1] == 4):
         print("Failed")
