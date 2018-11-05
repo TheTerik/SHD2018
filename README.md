@@ -19,3 +19,5 @@ As a prove of concept we analysed single reading of pH, however additional measu
 * numpy
 * scikit-image
 * imutils
+* matplotlib
+* seaborn
